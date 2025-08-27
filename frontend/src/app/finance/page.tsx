@@ -303,7 +303,7 @@ const FinancePage: React.FC = () => {
                           <div>
                             <div className="flex items-center mb-1">
                               <UserIcon className="w-4 h-4 text-gray-400 mr-2" />
-                              <span className="font-medium">{debt.customer?.name}</span>
+                              <span className="font-medium">Customer #{debt.customerId.slice(-8)}</span>
                             </div>
                             <p className="text-sm text-gray-600">
                               Transaksi #{debt.transactionId.slice(-8)}
@@ -387,7 +387,7 @@ const FinancePage: React.FC = () => {
                             </div>
                             <div className="flex items-center text-sm text-gray-600 mb-1">
                               <UserIcon className="w-4 h-4 mr-1" />
-                              {payment.customerDebt?.customer?.name}
+                              Customer #{payment.customerDebtId.slice(-8)}
                             </div>
                             <div className="flex items-center text-sm text-gray-500">
                               <CalendarIcon className="w-4 h-4 mr-1" />
@@ -494,7 +494,7 @@ const FinancePage: React.FC = () => {
               <div className="p-6">
                 <h2 className="text-xl font-bold mb-4">Tambah Pembayaran</h2>
                 <div className="mb-4 p-3 bg-gray-50 rounded">
-                  <p className="text-sm text-gray-600">Pelanggan: {selectedDebt.customer?.name}</p>
+                  <p className="text-sm text-gray-600">Customer: #{selectedDebt.customerId.slice(-8)}</p>
                   <p className="text-sm text-gray-600">
                     Sisa Hutang: <span className="font-bold text-red-600">
                       {formatPrice(selectedDebt.remainingDebt)}
