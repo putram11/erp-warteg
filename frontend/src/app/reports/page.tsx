@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { reportApi } from '@/lib/services';
 import { useAuth } from '@/contexts/AuthContext';
+import { Menu } from '@/types';
 import { 
   ChartBarIcon,
   CalendarIcon,
@@ -34,10 +35,10 @@ interface SalesReport {
 }
 
 interface PopularMenu {
-  menuId: string;
-  menuName: string;
-  totalQuantity: number;
+  menu: Menu;
+  totalSold: number;
   totalRevenue: number;
+  averagePrice: number;
 }
 
 const ReportsPage: React.FC = () => {
@@ -110,7 +111,7 @@ const ReportsPage: React.FC = () => {
   const fetchPopularMenus = async () => {
     try {
       const response = await reportApi.getPopularMenusReport({ days: 30, limit: 10 });
-      setPopularMenus(response.data.report.menus || []);
+      setPopularMenus(response.data.report.popularMenus || []);
     } catch (error) {
       console.error('Failed to fetch popular menus:', error);
     }
@@ -448,27 +449,27 @@ const ReportsPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {popularMenus.map((menu, index) => (
-                      <div key={menu.menuId} className="border rounded-lg p-4">
+                    {popularMenus.map((menuItem, index) => (
+                      <div key={menuItem.menu.id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <div className="flex items-center">
                               <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2">
                                 #{index + 1}
                               </span>
-                              <h4 className="font-medium">{menu.menuName}</h4>
+                              <h4 className="font-medium">{menuItem.menu.name}</h4>
                             </div>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
                             <p className="text-gray-600">Terjual</p>
-                            <p className="font-semibold">{menu.totalQuantity} porsi</p>
+                            <p className="font-semibold">{menuItem.totalSold} porsi</p>
                           </div>
                           <div>
                             <p className="text-gray-600">Revenue</p>
                             <p className="font-semibold text-green-600">
-                              {formatPrice(menu.totalRevenue)}
+                              {formatPrice(menuItem.totalRevenue)}
                             </p>
                           </div>
                         </div>
