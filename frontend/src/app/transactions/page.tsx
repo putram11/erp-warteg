@@ -118,7 +118,8 @@ const TransactionsPage: React.FC = () => {
         customerId: formData.customerId || undefined,
         items: cart.map(item => ({
           menuId: item.menu.id,
-          quantity: item.quantity
+          quantity: item.quantity,
+          price: item.menu.price
         })),
         paymentMethod: formData.paymentMethod,
         notes: formData.notes

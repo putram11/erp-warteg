@@ -70,6 +70,75 @@ export interface PaymentRecord {
   createdAt: string;
 }
 
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  user: User;
+  token: string;
+}
+
+export interface CreateMenuRequest {
+  name: string;
+  description?: string;
+  price: number;
+  category: MenuCategory;
+  stock: number;
+  image?: string;
+}
+
+export interface CreateTransactionRequest {
+  customerId?: string;
+  items: {
+    menuId: string;
+    quantity: number;
+    price: number;
+  }[];
+  paymentMethod: 'CASH' | 'DEBIT' | 'CREDIT' | 'TRANSFER';
+  notes?: string;
+}
+
+export interface DashboardData {
+  totalSales: number;
+  totalTransactions: number;
+  totalCustomers: number;
+  totalMenus: number;
+  salesThisMonth: number;
+  salesLastMonth: number;
+  recentTransactions: Transaction[];
+  lowStockMenus: Menu[];
+}
+
+export interface SalesReport {
+  date: string;
+  totalSales: number;
+  totalTransactions: number;
+  averageOrderValue: number;
+  salesByCategory: {
+    category: MenuCategory;
+    sales: number;
+    transactions: number;
+  }[];
+  salesByHour: {
+    hour: number;
+    sales: number;
+    transactions: number;
+  }[];
+}
+
+export interface PopularMenusReport {
+  period: string;
+  totalMenusSold: number;
+  popularMenus: {
+    menu: Menu;
+    totalSold: number;
+    totalRevenue: number;
+    averagePrice: number;
+  }[];
+}
+
 export interface LoginData {
   email: string;
   password: string;
