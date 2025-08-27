@@ -54,7 +54,7 @@ const MenuPage: React.FC = () => {
 
   const filteredMenus = menus.filter(menu => {
     const matchesSearch = menu.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         menu.description.toLowerCase().includes(searchTerm.toLowerCase());
+                         (menu.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'ALL' || menu.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -214,7 +214,7 @@ const MenuPage: React.FC = () => {
                       Stock: {menu.stock}
                     </span>
                   </div>
-                  <p className="text-gray-600 text-sm mb-2 line-clamp-2">{menu.description}</p>
+                  <p className="text-gray-600 text-sm mb-2 line-clamp-2">{menu.description || 'Tidak ada deskripsi'}</p>
                   <div className="flex justify-between items-center mb-3">
                     <span className="font-bold text-blue-600">{formatPrice(menu.price)}</span>
                     <span className="bg-gray-100 text-gray-800 px-2 py-1 text-xs rounded">
