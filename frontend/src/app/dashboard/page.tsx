@@ -49,16 +49,6 @@ const Dashboard: React.FC = () => {
     }).format(price);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      year: 'numeric',
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   if (loading) {
     return (
       <Layout>
@@ -72,7 +62,6 @@ const Dashboard: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Welcome Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-6 text-white">
           <h1 className="text-2xl font-bold mb-2">
             Selamat datang, {user?.name}!
@@ -82,7 +71,6 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center">
@@ -138,111 +126,6 @@ const Dashboard: React.FC = () => {
                 </p>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Transactions */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b">
-              <h3 className="text-lg font-semibold">Transaksi Terbaru</h3>
-            </div>
-            <div className="p-6">
-              {stats?.recentTransactions && stats.recentTransactions.length > 0 ? (
-                <div className="space-y-4">
-                  {stats.recentTransactions.slice(0, 5).map((transaction) => (
-                    <div key={transaction.id} className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">#{transaction.id.slice(-8)}</p>
-                        <p className="text-sm text-gray-600">
-                          {formatDate(transaction.createdAt)}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{formatPrice(transaction.totalAmount)}</p>
-                        <p className={`text-xs px-2 py-1 rounded-full ${
-                          transaction.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                          transaction.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {transaction.status}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-4">Belum ada transaksi hari ini</p>
-              )}
-            </div>
-          </div>
-
-          {/* Low Stock Alert */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b">
-              <h3 className="text-lg font-semibold">Peringatan Stok</h3>
-            </div>
-            <div className="p-6">
-              {stats?.lowStockMenus && stats.lowStockMenus.length > 0 ? (
-                <div className="space-y-4">
-                  {stats.lowStockMenus.slice(0, 5).map((menu) => (
-                    <div key={menu.id} className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">{menu.name}</p>
-                        <p className="text-sm text-gray-600">{menu.category}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className={`font-semibold ${
-                          menu.stock <= 5 ? 'text-red-600' : 
-                          menu.stock <= 10 ? 'text-yellow-600' : 'text-green-600'
-                        }`}>
-                          {menu.stock} tersisa
-                        </p>
-                        <p className="text-sm text-gray-600">{formatPrice(menu.price)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-4">Semua menu memiliki stok yang cukup</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Aksi Cepat</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a
-              href="/transactions"
-              className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-blue-500 hover:bg-blue-50 transition-colors"
-            >
-              <ShoppingBagIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm font-medium">Transaksi Baru</p>
-            </a>
-            <a
-              href="/menu"
-              className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-green-500 hover:bg-green-50 transition-colors"
-            >
-              <ChartBarIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm font-medium">Kelola Menu</p>
-            </a>
-            <a
-              href="/customers"
-              className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-purple-500 hover:bg-purple-50 transition-colors"
-            >
-              <UsersIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm font-medium">Data Pelanggan</p>
-            </a>
-            <a
-              href="/reports"
-              className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-orange-500 hover:bg-orange-50 transition-colors"
-            >
-              <CurrencyDollarIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm font-medium">Laporan</p>
-            </a>
           </div>
         </div>
       </div>
