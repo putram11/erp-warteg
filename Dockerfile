@@ -17,9 +17,15 @@ FROM node:18-alpine AS backend-builder
 
 WORKDIR /app/backend
 
-# Copy package files first for better caching
+# Copy package files and prisma schema first for better caching
 COPY backend/package*.json ./
-RUN npm ci --only=production
+COPY backend/prisma ./prisma
+
+# Install dependencies (include dev for prisma)
+RUN npm ci
+
+# Generate Prisma client
+RUN npx prisma generate
 
 # Copy source code
 COPY backend/ ./
@@ -27,13 +33,13 @@ COPY backend/ ./
 # Stage 3: Production
 FROM node:18-alpine AS production
 
-# Install PM2 globally
-RUN npm install -g pm2
+# Install PM2 globally and curl for health check
+RUN npm install -g pm2 && apk add --no-cache curl
 
 # Create app directory
 WORKDIR /app
 
-# Copy backend files and dependencies
+# Copy backend files and dependencies (including generated prisma client)
 COPY --from=backend-builder /app/backend ./backend
 COPY --from=backend-builder /app/backend/node_modules ./backend/node_modules
 
@@ -46,6 +52,9 @@ RUN npm install -g serve
 
 # Create PM2 ecosystem file
 COPY ecosystem.config.js ./
+
+# Create logs directory
+RUN mkdir -p /app/logs
 
 # Expose ports
 EXPOSE 3000 5000
