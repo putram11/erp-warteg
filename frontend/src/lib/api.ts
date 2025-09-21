@@ -42,10 +42,10 @@ api.interceptors.response.use(
 );
 
 // Generic API call function
-export const apiCall = async <T = any>(
+export const apiCall = async <T = unknown>(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE',
   endpoint: string,
-  data?: any
+  data?: unknown
 ): Promise<ApiResponse<T>> => {
   try {
     const response = await api({
@@ -54,8 +54,9 @@ export const apiCall = async <T = any>(
       data,
     });
     return response.data;
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.error || error.message || 'An error occurred';
+  } catch (error: unknown) {
+    const errorMessage = (error as { response?: { data?: { error?: string } }; message?: string })?.response?.data?.error || 
+                         (error as { message?: string })?.message || 'An error occurred';
     return {
       success: false,
       error: errorMessage,

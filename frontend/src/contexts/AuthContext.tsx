@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { apiCall } from '../lib/api';
+import { AuthContext } from './auth-context';
 import type { AuthContextType, User, RegisterData } from '../types';
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -52,7 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         toast.error(response.error || 'Login gagal');
         return false;
       }
-    } catch (error) {
+    } catch {
       toast.error('Terjadi kesalahan saat login');
       return false;
     } finally {
@@ -78,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         toast.error(response.error || 'Registrasi gagal');
         return false;
       }
-    } catch (error) {
+    } catch {
       toast.error('Terjadi kesalahan saat registrasi');
       return false;
     } finally {
@@ -97,7 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       
       toast.success('Logout berhasil');
-    } catch (error) {
+    } catch {
       // Even if logout fails on server, we still clear local storage
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -122,12 +121,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

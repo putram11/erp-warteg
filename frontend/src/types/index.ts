@@ -83,7 +83,7 @@ export interface Report {
   id: string;
   title: string;
   type: 'SALES' | 'FINANCE' | 'INVENTORY' | 'EMPLOYEE';
-  data: any;
+  data: Record<string, unknown>;
   dateFrom: string;
   dateTo: string;
   createdAt: string;
@@ -111,14 +111,14 @@ export interface LoginData {
   password: string;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
   message?: string;
 }
 
-export interface PaginatedResponse<T = any> {
+export interface PaginatedResponse<T = unknown> {
   data: T[];
   pagination: {
     page: number;

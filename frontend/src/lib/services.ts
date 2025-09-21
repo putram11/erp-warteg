@@ -29,7 +29,7 @@ export const authService = {
 // Menu Services
 export const menuService = {
   getMenuItems: (params?: { page?: number; limit?: number; category?: string; search?: string }) =>
-    apiCall<PaginatedResponse<MenuItem>>('GET', `/menu${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
+    apiCall<PaginatedResponse<MenuItem>>('GET', `/menu${params ? `?${new URLSearchParams(params as Record<string, string>).toString()}` : ''}`),
   
   getMenuItem: (id: string) =>
     apiCall<MenuItem>('GET', `/menu/${id}`),
@@ -47,7 +47,7 @@ export const menuService = {
 // Customer Services
 export const customerService = {
   getCustomers: (params?: { page?: number; limit?: number; search?: string }) =>
-    apiCall<PaginatedResponse<Customer>>('GET', `/customers${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
+    apiCall<PaginatedResponse<Customer>>('GET', `/customers${params ? `?${new URLSearchParams(params as Record<string, string>).toString()}` : ''}`),
   
   getCustomer: (id: string) =>
     apiCall<Customer>('GET', `/customers/${id}`),
@@ -64,8 +64,8 @@ export const customerService = {
 
 // Employee Services
 export const employeeService = {
-  getEmployees: (params?: { page?: number; limit?: number; search?: string; position?: string }) =>
-    apiCall<PaginatedResponse<Employee>>('GET', `/employees${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
+  getEmployees: (params?: { page?: number; limit?: number; search?: string }) =>
+    apiCall<PaginatedResponse<Employee>>('GET', `/employees${params ? `?${new URLSearchParams(params as Record<string, string>).toString()}` : ''}`),
   
   getEmployee: (id: string) =>
     apiCall<Employee>('GET', `/employees/${id}`),
@@ -82,8 +82,8 @@ export const employeeService = {
 
 // Transaction Services
 export const transactionService = {
-  getTransactions: (params?: { page?: number; limit?: number; status?: string; dateFrom?: string; dateTo?: string }) =>
-    apiCall<PaginatedResponse<Transaction>>('GET', `/transactions${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
+  getTransactions: (params?: { page?: number; limit?: number; status?: string; search?: string }) =>
+    apiCall<PaginatedResponse<Transaction>>('GET', `/transactions${params ? `?${new URLSearchParams(params as Record<string, string>).toString()}` : ''}`),
   
   getTransaction: (id: string) =>
     apiCall<Transaction>('GET', `/transactions/${id}`),
@@ -104,8 +104,8 @@ export const transactionService = {
 
 // Finance Services
 export const financeService = {
-  getFinanceRecords: (params?: { page?: number; limit?: number; type?: 'INCOME' | 'EXPENSE'; category?: string; dateFrom?: string; dateTo?: string }) =>
-    apiCall<PaginatedResponse<FinanceRecord>>('GET', `/finance${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
+  getFinanceRecords: (params?: { page?: number; limit?: number; type?: string; category?: string }) =>
+    apiCall<PaginatedResponse<FinanceRecord>>('GET', `/finance${params ? `?${new URLSearchParams(params as Record<string, string>).toString()}` : ''}`),
   
   getFinanceRecord: (id: string) =>
     apiCall<FinanceRecord>('GET', `/finance/${id}`),
@@ -123,7 +123,7 @@ export const financeService = {
 // Report Services
 export const reportService = {
   getReports: (params?: { page?: number; limit?: number; type?: 'SALES' | 'FINANCE' | 'INVENTORY' | 'EMPLOYEE' }) =>
-    apiCall<PaginatedResponse<Report>>('GET', `/reports${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
+    apiCall<PaginatedResponse<Report>>('GET', `/reports${params ? `?${new URLSearchParams(params as Record<string, string>).toString()}` : ''}`),
   
   getReport: (id: string) =>
     apiCall<Report>('GET', `/reports/${id}`),
