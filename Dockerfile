@@ -3,9 +3,12 @@
 FROM node:18-alpine AS frontend-builder
 
 WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm ci --only=production
 
+# Copy package files first for better caching
+COPY frontend/package*.json ./
+RUN npm ci
+
+# Copy source code and build
 COPY frontend/ ./
 RUN npm run build
 
@@ -13,9 +16,12 @@ RUN npm run build
 FROM node:18-alpine AS backend-builder
 
 WORKDIR /app/backend
+
+# Copy package files first for better caching
 COPY backend/package*.json ./
 RUN npm ci --only=production
 
+# Copy source code
 COPY backend/ ./
 
 # Stage 3: Production
