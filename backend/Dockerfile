@@ -4,10 +4,12 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY prisma ./prisma
 
 # Install dependencies (include dev dependencies for prisma)
 RUN npm ci
+
+# Copy prisma schema first
+COPY prisma ./prisma
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -18,5 +20,5 @@ COPY . .
 # Expose port
 EXPOSE 5000
 
-# Start command
-CMD ["npm", "start"]
+# For development, always ensure prisma is generated when container starts
+CMD ["sh", "-c", "npx prisma generate && npm run dev"]
