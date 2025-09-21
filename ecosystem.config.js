@@ -19,8 +19,8 @@ module.exports = {
     },
     {
       name: 'erp-warteg-frontend',
-      script: 'npm',
-      args: 'start',
+      script: 'serve',
+      args: '-s dist -l 3000',
       cwd: '/app/frontend',
       env: {
         NODE_ENV: 'production',

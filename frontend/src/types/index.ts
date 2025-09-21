@@ -2,141 +2,108 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'OWNER' | 'EMPLOYEE' | 'CUSTOMER';
+  role: 'ADMIN' | 'EMPLOYEE' | 'CUSTOMER';
   phone?: string;
   address?: string;
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface Menu {
+export interface MenuItem {
   id: string;
   name: string;
   description?: string;
   price: number;
-  category: MenuCategory;
-  stock: number;
+  category: string;
+  available: boolean;
   image?: string;
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export type MenuCategory = 'MAKANAN' | 'MINUMAN' | 'SNACK' | 'LAINNYA';
+export interface Customer {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  totalSpent: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  position: string;
+  salary: number;
+  hireDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface Transaction {
   id: string;
   customerId?: string;
-  customer?: User;
+  customer?: Customer;
+  employeeId: string;
+  employee?: Employee;
+  items: TransactionItem[];
   totalAmount: number;
-  paymentMethod: 'CASH' | 'DEBIT' | 'CREDIT' | 'TRANSFER';
+  paymentMethod: 'CASH' | 'CARD' | 'TRANSFER';
   status: 'PENDING' | 'COMPLETED' | 'CANCELLED';
-  notes?: string;
   createdAt: string;
   updatedAt: string;
-  transactionItems: TransactionItem[];
-  customerDebt?: CustomerDebt;
 }
 
 export interface TransactionItem {
   id: string;
   transactionId: string;
-  menuId: string;
-  menu: Menu;
+  menuItemId: string;
+  menuItem?: MenuItem;
   quantity: number;
   price: number;
   subtotal: number;
 }
 
-export interface CustomerDebt {
+export interface FinanceRecord {
   id: string;
-  customerId: string;
-  transactionId: string;
-  totalDebt: number;
-  remainingDebt: number;
-  isSettled: boolean;
+  type: 'INCOME' | 'EXPENSE';
+  category: string;
+  amount: number;
+  description?: string;
+  date: string;
   createdAt: string;
   updatedAt: string;
-  paymentRecords: PaymentRecord[];
 }
 
-export interface PaymentRecord {
+export interface Report {
   id: string;
-  customerDebtId: string;
-  amount: number;
-  paymentMethod: 'CASH' | 'DEBIT' | 'CREDIT' | 'TRANSFER';
-  notes?: string;
+  title: string;
+  type: 'SALES' | 'FINANCE' | 'INVENTORY' | 'EMPLOYEE';
+  data: any;
+  dateFrom: string;
+  dateTo: string;
   createdAt: string;
+  updatedAt: string;
 }
 
-export interface LoginRequest {
+export interface AuthContextType {
+  user: User | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  register: (data: RegisterData) => Promise<boolean>;
+  loading: boolean;
+}
+
+export interface RegisterData {
+  name: string;
   email: string;
   password: string;
-}
-
-export interface LoginResponse {
-  user: User;
-  token: string;
-}
-
-export interface CreateMenuRequest {
-  name: string;
-  description?: string;
-  price: number;
-  category: MenuCategory;
-  stock: number;
-  image?: string;
-}
-
-export interface CreateTransactionRequest {
-  customerId?: string;
-  items: {
-    menuId: string;
-    quantity: number;
-    price: number;
-  }[];
-  paymentMethod: 'CASH' | 'DEBIT' | 'CREDIT' | 'TRANSFER';
-  notes?: string;
-}
-
-export interface DashboardData {
-  totalSales: number;
-  totalTransactions: number;
-  totalCustomers: number;
-  totalMenus: number;
-  salesThisMonth: number;
-  salesLastMonth: number;
-  recentTransactions: Transaction[];
-  lowStockMenus: Menu[];
-}
-
-export interface SalesReport {
-  date: string;
-  totalSales: number;
-  totalTransactions: number;
-  averageOrderValue: number;
-  salesByCategory: {
-    category: MenuCategory;
-    sales: number;
-    transactions: number;
-  }[];
-  salesByHour: {
-    hour: number;
-    sales: number;
-    transactions: number;
-  }[];
-}
-
-export interface PopularMenusReport {
-  period: string;
-  totalMenusSold: number;
-  popularMenus: {
-    menu: Menu;
-    totalSold: number;
-    totalRevenue: number;
-    averagePrice: number;
-  }[];
+  phone?: string;
+  address?: string;
 }
 
 export interface LoginData {
@@ -144,19 +111,29 @@ export interface LoginData {
   password: string;
 }
 
-export interface AuthResponse {
-  user: User;
-  token: string;
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-  pagination?: {
+export interface PaginatedResponse<T = any> {
+  data: T[];
+  pagination: {
     page: number;
     limit: number;
     total: number;
     totalPages: number;
   };
+}
+
+export interface DashboardStats {
+  totalSales: number;
+  totalTransactions: number;
+  totalCustomers: number;
+  totalMenuItems: number;
+  dailySales: { date: string; amount: number }[];
+  topItems: { item: string; quantity: number }[];
+  recentTransactions: Transaction[];
 }

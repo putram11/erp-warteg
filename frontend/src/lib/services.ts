@@ -1,199 +1,156 @@
-import api from '@/lib/api';
-import type {
-  LoginRequest,
-  LoginResponse,
-  User,
-  Menu,
-  CreateMenuRequest,
-  Transaction,
-  CreateTransactionRequest,
-  DashboardData,
-  SalesReport,
-  PopularMenusReport,
-  CustomerDebt,
-  PaymentRecord,
-  ApiResponse,
-} from '@/types';
+import { apiCall } from '../lib/api';
+import type { 
+  User, 
+  MenuItem, 
+  Customer, 
+  Employee, 
+  Transaction, 
+  FinanceRecord, 
+  Report,
+  DashboardStats,
+  PaginatedResponse 
+} from '../types';
 
-// Auth API
-export const authApi = {
-  login: (data: LoginRequest) =>
-    api.post<LoginResponse>('/auth/login', data),
+// Auth Services
+export const authService = {
+  login: (email: string, password: string) =>
+    apiCall<{ user: User; token: string }>('POST', '/auth/login', { email, password }),
   
-  register: (data: any) =>
-    api.post<LoginResponse>('/auth/register', data),
-  
-  getProfile: () =>
-    api.get<{ user: User }>('/auth/profile'),
-  
-  updateProfile: (data: Partial<User>) =>
-    api.put<{ user: User }>('/auth/profile', data),
+  register: (data: { name: string; email: string; password: string; phone?: string; address?: string }) =>
+    apiCall<{ user: User; token: string }>('POST', '/auth/register', data),
   
   logout: () =>
-    api.post('/auth/logout'),
+    apiCall('POST', '/auth/logout'),
+  
+  getCurrentUser: () =>
+    apiCall<User>('GET', '/auth/me'),
 };
 
-// Menu API
-export const menuApi = {
-  getMenus: (params?: {
-    category?: string;
-    available?: boolean;
-    search?: string;
-    page?: number;
-    limit?: number;
-  }) =>
-    api.get<{ menus: Menu[]; pagination: any }>('/menus', { params }),
+// Menu Services
+export const menuService = {
+  getMenuItems: (params?: { page?: number; limit?: number; category?: string; search?: string }) =>
+    apiCall<PaginatedResponse<MenuItem>>('GET', `/menu${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
   
-  getMenuById: (id: string) =>
-    api.get<{ menu: Menu }>(`/menus/${id}`),
+  getMenuItem: (id: string) =>
+    apiCall<MenuItem>('GET', `/menu/${id}`),
   
-  createMenu: (data: CreateMenuRequest) =>
-    api.post<{ menu: Menu }>('/menus', data),
+  createMenuItem: (data: Omit<MenuItem, 'id' | 'createdAt' | 'updatedAt'>) =>
+    apiCall<MenuItem>('POST', '/menu', data),
   
-  updateMenu: (id: string, data: Partial<CreateMenuRequest>) =>
-    api.put<{ menu: Menu }>(`/menus/${id}`, data),
+  updateMenuItem: (id: string, data: Partial<Omit<MenuItem, 'id' | 'createdAt' | 'updatedAt'>>) =>
+    apiCall<MenuItem>('PUT', `/menu/${id}`, data),
   
-  deleteMenu: (id: string) =>
-    api.delete(`/menus/${id}`),
-  
-  updateStock: (id: string, data: {
-    quantity: number;
-    type: 'RESTOCK' | 'SALE' | 'ADJUSTMENT';
-    description?: string;
-  }) =>
-    api.post(`/menus/${id}/stock`, data),
-  
-  getStockHistory: (id: string, params?: { page?: number; limit?: number }) =>
-    api.get(`/menus/${id}/stock-history`, { params }),
+  deleteMenuItem: (id: string) =>
+    apiCall('DELETE', `/menu/${id}`),
 };
 
-// Transaction API
-export const transactionApi = {
-  getTransactions: (params?: {
-    status?: string;
+// Customer Services
+export const customerService = {
+  getCustomers: (params?: { page?: number; limit?: number; search?: string }) =>
+    apiCall<PaginatedResponse<Customer>>('GET', `/customers${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
+  
+  getCustomer: (id: string) =>
+    apiCall<Customer>('GET', `/customers/${id}`),
+  
+  createCustomer: (data: Omit<Customer, 'id' | 'totalSpent' | 'createdAt' | 'updatedAt'>) =>
+    apiCall<Customer>('POST', '/customers', data),
+  
+  updateCustomer: (id: string, data: Partial<Omit<Customer, 'id' | 'totalSpent' | 'createdAt' | 'updatedAt'>>) =>
+    apiCall<Customer>('PUT', `/customers/${id}`, data),
+  
+  deleteCustomer: (id: string) =>
+    apiCall('DELETE', `/customers/${id}`),
+};
+
+// Employee Services
+export const employeeService = {
+  getEmployees: (params?: { page?: number; limit?: number; search?: string; position?: string }) =>
+    apiCall<PaginatedResponse<Employee>>('GET', `/employees${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
+  
+  getEmployee: (id: string) =>
+    apiCall<Employee>('GET', `/employees/${id}`),
+  
+  createEmployee: (data: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) =>
+    apiCall<Employee>('POST', '/employees', data),
+  
+  updateEmployee: (id: string, data: Partial<Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>>) =>
+    apiCall<Employee>('PUT', `/employees/${id}`, data),
+  
+  deleteEmployee: (id: string) =>
+    apiCall('DELETE', `/employees/${id}`),
+};
+
+// Transaction Services
+export const transactionService = {
+  getTransactions: (params?: { page?: number; limit?: number; status?: string; dateFrom?: string; dateTo?: string }) =>
+    apiCall<PaginatedResponse<Transaction>>('GET', `/transactions${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
+  
+  getTransaction: (id: string) =>
+    apiCall<Transaction>('GET', `/transactions/${id}`),
+  
+  createTransaction: (data: {
     customerId?: string;
-    startDate?: string;
-    endDate?: string;
-    page?: number;
-    limit?: number;
+    items: { menuItemId: string; quantity: number; price: number }[];
+    paymentMethod: 'CASH' | 'CARD' | 'TRANSFER';
   }) =>
-    api.get<{ transactions: Transaction[]; pagination: any }>('/transactions', { params }),
+    apiCall<Transaction>('POST', '/transactions', data),
   
-  getTransactionById: (id: string) =>
-    api.get<{ transaction: Transaction }>(`/transactions/${id}`),
+  updateTransaction: (id: string, data: { status?: 'PENDING' | 'COMPLETED' | 'CANCELLED' }) =>
+    apiCall<Transaction>('PUT', `/transactions/${id}`, data),
   
-  createTransaction: (data: CreateTransactionRequest) =>
-    api.post<{ transaction: Transaction }>('/transactions', data),
-  
-  updateTransactionStatus: (id: string, status: string) =>
-    api.patch(`/transactions/${id}/status`, { status }),
-  
-  addPayment: (id: string, data: {
-    amount: number;
-    paymentMethod?: 'CASH' | 'TRANSFER';
-    notes?: string;
-  }) =>
-    api.post(`/transactions/${id}/payments`, data),
-  
-  getTransactionPayments: (id: string) =>
-    api.get<{ payments: PaymentRecord[] }>(`/transactions/${id}/payments`),
-  
-  cancelTransaction: (id: string) =>
-    api.delete(`/transactions/${id}`),
+  deleteTransaction: (id: string) =>
+    apiCall('DELETE', `/transactions/${id}`),
 };
 
-// Customer API
-export const customerApi = {
-  getCustomers: (params?: {
-    search?: string;
-    page?: number;
-    limit?: number;
-  }) =>
-    api.get<{ customers: User[]; pagination: any }>('/customers', { params }),
+// Finance Services
+export const financeService = {
+  getFinanceRecords: (params?: { page?: number; limit?: number; type?: 'INCOME' | 'EXPENSE'; category?: string; dateFrom?: string; dateTo?: string }) =>
+    apiCall<PaginatedResponse<FinanceRecord>>('GET', `/finance${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
   
-  getCustomerById: (id: string) =>
-    api.get<{ customer: User }>(`/customers/${id}`),
+  getFinanceRecord: (id: string) =>
+    apiCall<FinanceRecord>('GET', `/finance/${id}`),
   
-  getCustomerTransactions: (id: string, params?: { page?: number; limit?: number }) =>
-    api.get<{ transactions: Transaction[]; pagination: any }>(`/customers/${id}/transactions`, { params }),
+  createFinanceRecord: (data: Omit<FinanceRecord, 'id' | 'createdAt' | 'updatedAt'>) =>
+    apiCall<FinanceRecord>('POST', '/finance', data),
   
-  getCustomerDebts: (id: string) =>
-    api.get<{ debts: CustomerDebt[] }>(`/customers/${id}/debts`),
+  updateFinanceRecord: (id: string, data: Partial<Omit<FinanceRecord, 'id' | 'createdAt' | 'updatedAt'>>) =>
+    apiCall<FinanceRecord>('PUT', `/finance/${id}`, data),
+  
+  deleteFinanceRecord: (id: string) =>
+    apiCall('DELETE', `/finance/${id}`),
 };
 
-// Finance API
-export const financeApi = {
-  getCustomerDebts: (params?: {
-    customerId?: string;
-    settled?: boolean;
-    page?: number;
-    limit?: number;
-  }) =>
-    api.get<{ debts: CustomerDebt[]; pagination: any }>('/finance/debts', { params }),
+// Report Services
+export const reportService = {
+  getReports: (params?: { page?: number; limit?: number; type?: 'SALES' | 'FINANCE' | 'INVENTORY' | 'EMPLOYEE' }) =>
+    apiCall<PaginatedResponse<Report>>('GET', `/reports${params ? `?${new URLSearchParams(params as any).toString()}` : ''}`),
   
-  getDebtSummary: () =>
-    api.get('/finance/debts/summary'),
+  getReport: (id: string) =>
+    apiCall<Report>('GET', `/reports/${id}`),
   
-  getPaymentRecords: (params?: {
-    startDate?: string;
-    endDate?: string;
-    page?: number;
-    limit?: number;
+  generateReport: (data: { 
+    title: string; 
+    type: 'SALES' | 'FINANCE' | 'INVENTORY' | 'EMPLOYEE'; 
+    dateFrom: string; 
+    dateTo: string; 
   }) =>
-    api.get<{ payments: PaymentRecord[]; pagination: any }>('/finance/payments', { params }),
+    apiCall<Report>('POST', '/reports', data),
   
-  getCashFlow: (params?: {
-    startDate?: string;
-    endDate?: string;
-  }) =>
-    api.get('/finance/cash-flow', { params }),
+  deleteReport: (id: string) =>
+    apiCall('DELETE', `/reports/${id}`),
 };
 
-// Report API
-export const reportApi = {
-  getDailySalesReport: (params?: {
-    startDate?: string;
-    endDate?: string;
-  }) =>
-    api.get<{ report: SalesReport }>('/reports/sales/daily', { params }),
+// Dashboard Services
+export const dashboardService = {
+  getStats: () =>
+    apiCall<DashboardStats>('GET', '/dashboard/stats'),
   
-  getMonthlySalesReport: (params?: {
-    year?: number;
-    month?: number;
-  }) =>
-    api.get('/reports/sales/monthly', { params }),
+  getDailySales: (days: number = 7) =>
+    apiCall<{ date: string; amount: number }[]>('GET', `/dashboard/daily-sales?days=${days}`),
   
-  getPopularMenusReport: (params?: {
-    days?: number;
-    limit?: number;
-  }) =>
-    api.get<{ report: PopularMenusReport }>('/reports/menu/popular', { params }),
+  getTopItems: (limit: number = 5) =>
+    apiCall<{ item: string; quantity: number; revenue: number }[]>('GET', `/dashboard/top-items?limit=${limit}`),
   
-  getStockAlertsReport: () =>
-    api.get('/reports/menu/stock-alerts'),
-  
-  getDashboardData: () =>
-    api.get<{ dashboard: DashboardData }>('/reports/dashboard'),
-};
-
-// Employee API
-export const employeeApi = {
-  getEmployees: (params?: {
-    search?: string;
-    page?: number;
-    limit?: number;
-  }) =>
-    api.get<{ employees: User[]; pagination: any }>('/employees', { params }),
-  
-  getEmployeeById: (id: string) =>
-    api.get<{ employee: User }>(`/employees/${id}`),
-  
-  updateEmployee: (id: string, data: Partial<User>) =>
-    api.put<{ employee: User }>(`/employees/${id}`, data),
-  
-  deactivateEmployee: (id: string) =>
-    api.patch(`/employees/${id}/deactivate`),
-  
-  activateEmployee: (id: string) =>
-    api.patch(`/employees/${id}/activate`),
+  getRecentTransactions: (limit: number = 5) =>
+    apiCall<Transaction[]>('GET', `/dashboard/recent-transactions?limit=${limit}`),
 };

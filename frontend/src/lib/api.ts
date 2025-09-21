@@ -1,9 +1,10 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
+import type { ApiResponse } from '../types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-export const api = axios.create({
+// Create axios instance
+const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
@@ -13,7 +14,7 @@ export const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('token');
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -24,20 +25,42 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
-      Cookies.remove('token');
-      Cookies.remove('user');
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
+      // Token expired or invalid
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
 );
+
+// Generic API call function
+export const apiCall = async <T = any>(
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  endpoint: string,
+  data?: any
+): Promise<ApiResponse<T>> => {
+  try {
+    const response = await api({
+      method,
+      url: endpoint,
+      data,
+    });
+    return response.data;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.error || error.message || 'An error occurred';
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+};
 
 export default api;

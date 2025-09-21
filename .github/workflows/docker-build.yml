@@ -60,6 +60,11 @@ jobs:
           cd backend
           npm test || echo "No tests found"
 
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm run build
+
       - name: Run Frontend Tests
         run: |
           cd frontend
@@ -73,7 +78,7 @@ jobs:
       - name: Lint Frontend Code
         run: |
           cd frontend
-          npm run lint || echo "No lint script found"
+          npm run lint
 
   build-and-push:
     name: Build and Push Docker Image

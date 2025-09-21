@@ -1,119 +1,133 @@
-'use client';
-
-import { createContext, useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
-import { User } from '@/types';
-import { authApi } from '@/lib/services';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  refreshUser: () => Promise<void>;
-}
+import { apiCall } from '../lib/api';
+import type { AuthContextType, User, RegisterData } from '../types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
 
-  const isAuthenticated = !!user;
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const token = Cookies.get('token');
-      const savedUser = Cookies.get('user');
-
-      if (token && savedUser) {
-        try {
-          setUser(JSON.parse(savedUser));
-          // Optionally refresh user data from server
-          await refreshUser();
-        } catch (error) {
-          console.error('Failed to parse saved user:', error);
-          logout();
-        }
+    // Check if user is logged in on app start
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    
+    if (token && savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
       }
-      setIsLoading(false);
-    };
-
-    initAuth();
+    }
+    
+    setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      setIsLoading(true);
-      const response = await authApi.login({ email, password });
-      const { user: userData, token } = response.data;
+      setLoading(true);
+      const response = await apiCall<{ user: User; token: string }>('POST', '/auth/login', {
+        email,
+        password,
+      });
 
-      // Save to cookies
-      Cookies.set('token', token, { expires: 7 }); // 7 days
-      Cookies.set('user', JSON.stringify(userData), { expires: 7 });
-      
-      setUser(userData);
-      toast.success('Login berhasil!');
-      
-      // Redirect based on role
-      if (userData.role === 'CUSTOMER') {
-        router.push('/customer');
+      if (response.success && response.data) {
+        const { user: userData, token } = response.data;
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        
+        toast.success('Login berhasil!');
+        return true;
       } else {
-        router.push('/dashboard');
+        toast.error(response.error || 'Login gagal');
+        return false;
       }
-    } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error.response?.data?.error || 'Login gagal');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = () => {
-    Cookies.remove('token');
-    Cookies.remove('user');
-    setUser(null);
-    router.push('/login');
-    toast.success('Logout berhasil');
-  };
-
-  const refreshUser = async () => {
-    try {
-      const response = await authApi.getProfile();
-      const userData = response.data.user;
-      setUser(userData);
-      Cookies.set('user', JSON.stringify(userData), { expires: 7 });
     } catch (error) {
-      console.error('Failed to refresh user:', error);
-      // Don't logout here, as it might be a temporary network issue
+      toast.error('Terjadi kesalahan saat login');
+      return false;
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const register = async (data: RegisterData): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const response = await apiCall<{ user: User; token: string }>('POST', '/auth/register', data);
+
+      if (response.success && response.data) {
+        const { user: userData, token } = response.data;
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        
+        toast.success('Registrasi berhasil!');
+        return true;
+      } else {
+        toast.error(response.error || 'Registrasi gagal');
+        return false;
+      }
+    } catch (error) {
+      toast.error('Terjadi kesalahan saat registrasi');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      // Call logout endpoint to invalidate token on server
+      await apiCall('POST', '/auth/logout');
+      
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+      
+      toast.success('Logout berhasil');
+    } catch (error) {
+      // Even if logout fails on server, we still clear local storage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+      
+      toast.error('Terjadi kesalahan saat logout');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    login,
+    register,
+    logout,
+    loading,
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        isAuthenticated,
-        login,
-        logout,
-        refreshUser,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
+};

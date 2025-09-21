@@ -1,5 +1,5 @@
 # Multi-stage build untuk ERP Warteg
-# Stage 1: Build Frontend
+# Stage 1: Build Frontend (React + Vite)
 FROM node:18-alpine AS frontend-builder
 
 WORKDIR /app/frontend
@@ -37,12 +37,12 @@ WORKDIR /app
 COPY --from=backend-builder /app/backend ./backend
 COPY --from=backend-builder /app/backend/node_modules ./backend/node_modules
 
-# Copy frontend build
-COPY --from=frontend-builder /app/frontend/.next ./frontend/.next
-COPY --from=frontend-builder /app/frontend/public ./frontend/public
+# Copy frontend build (Vite build output)
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 COPY --from=frontend-builder /app/frontend/package.json ./frontend/package.json
-COPY --from=frontend-builder /app/frontend/node_modules ./frontend/node_modules
-COPY --from=frontend-builder /app/frontend/next.config.js ./frontend/next.config.js
+
+# Install serve to serve the React build
+RUN npm install -g serve
 
 # Create PM2 ecosystem file
 COPY ecosystem.config.js ./

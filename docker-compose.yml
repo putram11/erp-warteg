@@ -46,19 +46,18 @@ services:
     container_name: warteg-frontend
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://backend:5000/api
+      VITE_API_URL: http://localhost:5000/api
       NODE_ENV: ${NODE_ENV:-development}
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT:-5173}:5173"
     depends_on:
       - backend
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - /app/.next
     networks:
       - warteg-network
-    command: npm run dev
+    command: npm run dev -- --host 0.0.0.0
 
 volumes:
   postgres_data:
