@@ -4,15 +4,16 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY prisma ./prisma
 
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy source code
-COPY . .
+# Install dependencies (include dev dependencies for prisma)
+RUN npm ci
 
 # Generate Prisma client
 RUN npx prisma generate
+
+# Copy source code
+COPY . .
 
 # Expose port
 EXPOSE 5000

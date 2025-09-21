@@ -1,56 +1,51 @@
 #!/bin/bash
 
-echo "🍛 Setting up ERP Warteg development environment..."
+# ERP Warteg Setup Script
+echo "🚀 Setting up ERP Warteg application..."
 
-# Check if Docker is installed
-if ! command -v docker &> /dev/null; then
-    echo "❌ Docker is not installed. Please install Docker first."
+# Check if Docker is running
+if ! docker info > /dev/null 2>&1; then
+    echo "❌ Docker is not running. Please start Docker first."
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ Docker Compose is not installed. Please install Docker Compose first."
-    exit 1
-fi
-
-# Create environment files if they don't exist
+# Copy environment file if not exists
 if [ ! -f .env ]; then
-    echo "📝 Creating .env file..."
+    echo "📝 Creating .env file from .env.example..."
     cp .env.example .env
+    echo "✅ .env file created. Please edit it with your configuration."
 fi
 
-if [ ! -f backend/.env ]; then
-    echo "📝 Creating backend/.env file..."
-    cp backend/.env.example backend/.env
-fi
+# Stop any running containers
+echo "� Stopping any existing containers..."
+docker-compose down
 
-if [ ! -f frontend/.env.local ]; then
-    echo "📝 Creating frontend/.env.local file..."
-    cp frontend/.env.example frontend/.env.local
-fi
+# Remove any existing volumes (optional - uncomment if you want fresh DB)
+# docker-compose down -v
 
-echo "🐳 Building and starting services..."
+# Build and start services
+echo "� Building and starting services..."
 docker-compose up --build -d
 
-echo "⏳ Waiting for services to be ready..."
-sleep 30
+# Wait for database to be ready
+echo "⏳ Waiting for database to be ready..."
+sleep 15
 
-echo "🗃️ Setting up database..."
-docker-compose exec backend npm run db:setup
+# Setup database (run migrations and seed)
+echo "�️ Setting up database..."
+docker-compose exec backend npm run prisma:generate
+docker-compose exec backend npm run prisma:migrate
+docker-compose exec backend npm run prisma:seed
 
 echo "✅ Setup complete!"
 echo ""
-echo "🚀 Services are running:"
-echo "   Frontend: http://localhost:3000"
-echo "   Backend:  http://localhost:5000"
+echo "🌐 Application URLs:"
+echo "   Frontend: http://localhost:5173"
+echo "   Backend API: http://localhost:5000"
 echo "   Database: localhost:5432"
 echo ""
-echo "🔐 Demo accounts:"
-echo "   Owner:    owner@warteg.com / password123"
-echo "   Employee: employee1@warteg.com / password123"
-echo "   Customer: customer1@example.com / password123"
-echo ""
-echo "📊 Useful commands:"
-echo "   docker-compose logs -f [service]  # View logs"
-echo "   docker-compose down               # Stop services"
-echo "   docker-compose up                 # Start services"
+echo "�️ Useful commands:"
+echo "   Stop: docker-compose down"
+echo "   Logs: docker-compose logs -f"
+echo "   Rebuild: docker-compose up --build"
+echo "   Reset DB: docker-compose exec backend npm run prisma:reset"
