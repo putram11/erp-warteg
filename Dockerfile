@@ -1,7 +1,7 @@
 # ===========================
 # Stage 1: Build Frontend (React + Vite)
 # ===========================
-FROM node:18-alpine AS frontend-builder
+FROM node:18-alpine3.16 AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -14,20 +14,20 @@ COPY frontend/ ./
 RUN npm run build
 
 # ===========================
-# Stage 2: Build Backend (FastAPI / Node backend Prisma)
+# Stage 2: Build Backend (Node + Prisma)
 # ===========================
-FROM node:18-alpine AS backend-builder
+FROM node:18-alpine3.16 AS backend-builder
 
 WORKDIR /app/backend
 
-# Prisma butuh OpenSSL 1.1 → install di build stage juga
+# Prisma butuh OpenSSL 1.1 di Prisma 4.x
 RUN apk add --no-cache openssl1.1 bash
 
 # Copy package.json & prisma schema
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma
 
-# Install deps (include dev buat prisma)
+# Install deps (include dev untuk prisma)
 RUN npm ci
 
 # Generate Prisma client
@@ -39,7 +39,7 @@ COPY backend/ ./
 # ===========================
 # Stage 3: Production
 # ===========================
-FROM node:18-alpine AS production
+FROM node:18-alpine3.16 AS production
 
 WORKDIR /app
 
