@@ -5,12 +5,14 @@ FROM node:18-bullseye-slim AS frontend-builder
 
 WORKDIR /app/frontend
 
-# Install deps untuk build
-RUN apt-get update && apt-get install -y curl bash && rm -rf /var/lib/apt/lists/*
+# Pakai npm versi stabil (9.x)
+RUN npm install -g npm@9
 
 # Copy package.json dulu supaya cache lebih optimal
 COPY frontend/package*.json ./
-RUN npm ci
+
+# Install deps (pakai legacy-peer-deps biar lebih aman di CI/CD)
+RUN npm install --legacy-peer-deps
 
 # Copy source code & build
 COPY frontend/ ./
@@ -24,15 +26,19 @@ FROM node:18-bullseye-slim AS backend-builder
 
 WORKDIR /app/backend
 
-# Install deps untuk prisma
-RUN apt-get update && apt-get install -y openssl curl bash && rm -rf /var/lib/apt/lists/*
+# Install openssl untuk Prisma
+RUN apt-get update && apt-get install -y openssl bash curl \
+  && rm -rf /var/lib/apt/lists/*
+
+# Pakai npm 9 biar konsisten
+RUN npm install -g npm@9
 
 # Copy package.json & prisma schema
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma
 
-# Install deps (include dev untuk prisma)
-RUN npm ci
+# Install deps
+RUN npm install --legacy-peer-deps
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -50,7 +56,7 @@ WORKDIR /app
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y openssl curl bash \
-  && npm install -g pm2 serve \
+  && npm install -g pm2 serve npm@9 \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy backend (include node_modules + prisma client)
@@ -74,5 +80,5 @@ EXPOSE 3000 5000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:5000/health || exit 1
 
-# Jalankan pakai PM2 (fork mode)
+# Jalankan pakai PM2
 CMD ["pm2-runtime", "start", "ecosystem.config.js"]
