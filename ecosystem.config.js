@@ -2,9 +2,9 @@ module.exports = {
   apps: [
     {
       name: 'erp-warteg-backend',
-      script: 'sh',
-      args: '-c "cd /app/backend && npx prisma generate && node src/server.js"',
-      cwd: '/app',
+      script: 'node',
+      args: 'src/server.js',
+      cwd: '/app/backend',
       env: {
         NODE_ENV: 'production',
         PORT: 5000
