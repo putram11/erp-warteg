@@ -1,11 +1,14 @@
 # ===========================
 # Stage 1: Build Frontend (React + Vite)
 # ===========================
-FROM node:18-alpine3.16 AS frontend-builder
+FROM node:18-bullseye-slim AS frontend-builder
 
 WORKDIR /app/frontend
 
-# Copy package files dulu biar cache lebih optimal
+# Install deps untuk build
+RUN apt-get update && apt-get install -y curl bash && rm -rf /var/lib/apt/lists/*
+
+# Copy package.json dulu supaya cache lebih optimal
 COPY frontend/package*.json ./
 RUN npm ci
 
@@ -13,15 +16,16 @@ RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
+
 # ===========================
 # Stage 2: Build Backend (Node + Prisma)
 # ===========================
-FROM node:18-alpine3.16 AS backend-builder
+FROM node:18-bullseye-slim AS backend-builder
 
 WORKDIR /app/backend
 
-# Prisma butuh OpenSSL 1.1 di Prisma 4.x
-RUN apk add --no-cache openssl1.1 bash
+# Install deps untuk prisma
+RUN apt-get update && apt-get install -y openssl curl bash && rm -rf /var/lib/apt/lists/*
 
 # Copy package.json & prisma schema
 COPY backend/package*.json ./
@@ -33,19 +37,21 @@ RUN npm ci
 # Generate Prisma client
 RUN npx prisma generate
 
-# Copy backend source code
+# Copy backend source
 COPY backend/ ./
+
 
 # ===========================
 # Stage 3: Production
 # ===========================
-FROM node:18-alpine3.16 AS production
+FROM node:18-bullseye-slim AS production
 
 WORKDIR /app
 
 # Install runtime dependencies
-RUN apk add --no-cache openssl1.1 curl bash \
-  && npm install -g pm2 serve
+RUN apt-get update && apt-get install -y openssl curl bash \
+  && npm install -g pm2 serve \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy backend (include node_modules + prisma client)
 COPY --from=backend-builder /app/backend ./backend
